@@ -35,7 +35,7 @@ Clone, then link the skill directory into your agent's skills folder.
 OpenCode:
 
 ```bash
-git clone https://github.com/<owner>/shadowtraffic-skill.git
+git clone https://github.com/dosedaf/shadowtraffic-skill.git
 ln -s "$PWD/shadowtraffic-skill" ~/.config/opencode/skills/shadowtraffic
 ```
 
