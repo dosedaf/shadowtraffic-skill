@@ -1,0 +1,197 @@
+{
+  "generators": [
+    {
+      "name": "users",
+      "topic": "agent.users",
+      "value": {
+        "userId": { "_gen": "uuid" },
+        "profile": {
+          "_gen": "profile",
+          "traits": ["firstName", "lastName", "email", "company"]
+        },
+        "plan": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 7, "value": "free" },
+            { "weight": 3, "value": "pro" }
+          ]
+        },
+        "createdAt": {
+          "_gen": "formatDateTime",
+          "ms": { "_gen": "now" }
+        }
+      },
+      "localConfigs": { "throughput": 2 }
+    },
+    {
+      "name": "sessions",
+      "topic": "agent.sessions",
+      "fork": {
+        "key": { "_gen": "uuid" },
+        "maxForks": 20,
+        "stagger": 250
+      },
+      "vars": {
+        "user": { "_gen": "lookup", "name": "users" }
+      },
+      "key": { "sessionId": { "_gen": "var", "var": "forkKey" } },
+      "value": {
+        "sessionId": { "_gen": "var", "var": "forkKey" },
+        "userId": {
+          "_gen": "var",
+          "var": "user",
+          "path": ["value", "userId"]
+        },
+        "model": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 6, "value": "gpt-4.1-mini" },
+            { "weight": 3, "value": "claude-sonnet-5" },
+            { "weight": 1, "value": "qwen3.8-max" }
+          ]
+        },
+        "startedAt": {
+          "_gen": "formatDateTime",
+          "ms": { "_gen": "now" }
+        }
+      },
+      "stateMachine": {
+        "_gen": "stateMachine",
+        "initial": "ACTIVE",
+        "transitions": {
+          "ACTIVE": "IDLE",
+          "IDLE": "CLOSED"
+        },
+        "states": {
+          "ACTIVE": { "value": { "state": "ACTIVE" } },
+          "IDLE": { "value": { "state": "IDLE" } },
+          "CLOSED": { "value": { "state": "CLOSED" } }
+        }
+      },
+      "localConfigs": { "throttleMs": 4000 }
+    },
+    {
+      "name": "messages",
+      "topic": "agent.messages",
+      "vars": {
+        "session": { "_gen": "lookup", "name": "sessions" }
+      },
+      "key": { "sessionId": { "_gen": "var", "var": "session", "path": ["value", "sessionId"] } },
+      "value": {
+        "messageId": { "_gen": "uuid" },
+        "sessionId": {
+          "_gen": "var",
+          "var": "session",
+          "path": ["value", "sessionId"]
+        },
+        "userId": {
+          "_gen": "var",
+          "var": "session",
+          "path": ["value", "userId"]
+        },
+        "role": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 45, "value": "user" },
+            { "weight": 55, "value": "assistant" }
+          ]
+        },
+        "content": {
+          "_gen": "string",
+          "expr": "#{Lorem.sentence}"
+        },
+        "promptTokens": {
+          "_gen": "uniformDistribution",
+          "bounds": [20, 800],
+          "decimals": 0
+        },
+        "completionTokens": {
+          "_gen": "uniformDistribution",
+          "bounds": [10, 600],
+          "decimals": 0
+        },
+        "latencyMs": {
+          "_gen": "normalDistribution",
+          "mean": 850,
+          "sd": 300,
+          "clamp": [80, 5000],
+          "decimals": 0
+        },
+        "createdAt": {
+          "_gen": "formatDateTime",
+          "ms": { "_gen": "now" }
+        }
+      },
+      "localConfigs": { "throttleMs": 750 }
+    },
+    {
+      "name": "toolCalls",
+      "topic": "agent.tool_calls",
+      "vars": {
+        "message": { "_gen": "lookup", "name": "messages" }
+      },
+      "key": { "sessionId": { "_gen": "var", "var": "message", "path": ["value", "sessionId"] } },
+      "value": {
+        "toolCallId": { "_gen": "uuid" },
+        "messageId": {
+          "_gen": "var",
+          "var": "message",
+          "path": ["value", "messageId"]
+        },
+        "sessionId": {
+          "_gen": "var",
+          "var": "message",
+          "path": ["value", "sessionId"]
+        },
+        "toolName": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 4, "value": "web_search" },
+            { "weight": 3, "value": "vector_search" },
+            { "weight": 2, "value": "sql_query" },
+            { "weight": 1, "value": "send_email" }
+          ]
+        },
+        "arguments": {
+          "_gen": "string",
+          "expr": "#{Lorem.words '3'}"
+        },
+        "status": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 92, "value": "ok" },
+            { "weight": 5, "value": "error" },
+            { "weight": 3, "value": "timeout" }
+          ]
+        },
+        "durationMs": {
+          "_gen": "normalDistribution",
+          "mean": 400,
+          "sd": 180,
+          "clamp": [10, 3000],
+          "decimals": 0
+        },
+        "createdAt": {
+          "_gen": "formatDateTime",
+          "ms": { "_gen": "now" }
+        }
+      },
+      "localConfigs": { "throttleMs": 2200 }
+    }
+  ],
+  "connections": {
+    "kafka": {
+      "kind": "kafka",
+      "topicPolicy": {
+        "policy": "create",
+        "partitions": 3,
+        "replicationFactor": 1
+      },
+      "producerConfigs": {
+        "bootstrap.servers": "localhost:9092",
+        "key.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer",
+        "value.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer"
+      }
+    }
+  }
+}
