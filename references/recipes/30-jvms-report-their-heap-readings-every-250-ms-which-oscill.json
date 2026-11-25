@@ -1,0 +1,85 @@
+{
+  "generators": [
+    {
+      "topic": "jvmHeapReadings",
+      "fork": {
+        "key": {
+          "_gen": "sequentialString",
+          "expr": "jvm-~d"
+        },
+        "maxForks": 30,
+        "stagger": {
+          "ms": 2000
+        }
+      },
+      "key": {
+        "jvmId": {
+          "_gen": "var",
+          "var": "forkKey"
+        }
+      },
+      "value": {
+        "timestamp": {
+          "_gen": "now"
+        }
+      },
+      "stateMachine": {
+        "_gen": "stateMachine",
+        "initial": "start",
+        "transitions": {
+          "start": "update",
+          "update": "update"
+        },
+        "states": {
+          "start": {
+            "value": {
+              "heapSize": {
+                "_gen": "normalDistribution",
+                "mean": 50,
+                "sd": 5
+              }
+            }
+          },
+          "update": {
+            "value": {
+              "heapSize": {
+                "_gen": "add",
+                "args": [
+                  {
+                    "_gen": "uniformDistribution",
+                    "bounds": [
+                      -1,
+                      1
+                    ]
+                  },
+                  {
+                    "_gen": "previousEvent",
+                    "path": [
+                      "value",
+                      "heapSize"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "localConfigs": {
+        "throttle": {
+          "ms": 250
+        }
+      }
+    }
+  ],
+  "connections": {
+    "dev-kafka": {
+      "kind": "kafka",
+      "producerConfigs": {
+        "bootstrap.servers": "localhost:9092",
+        "key.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer",
+        "value.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer"
+      }
+    }
+  }
+}
