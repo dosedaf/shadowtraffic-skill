@@ -1,0 +1,45 @@
+{
+  "generators": [
+    {
+      "connection": "postgres",
+      "table": "customers",
+      "row": {
+        "id": {
+          "_gen": "uuid"
+        }
+      }
+    },
+    {
+      "connection": "kafka",
+      "topic": "orders",
+      "value": {
+        "customerId": {
+          "_gen": "lookup",
+          "connection": "postgres",
+          "table": "customers",
+          "path": [
+            "id"
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "postgres": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "localhost",
+        "port": 5432,
+        "db": "mydb"
+      }
+    },
+    "kafka": {
+      "kind": "kafka",
+      "producerConfigs": {
+        "bootstrap.servers": "localhost:9092",
+        "key.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer",
+        "value.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer"
+      }
+    }
+  }
+}

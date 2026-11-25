@@ -1,0 +1,39 @@
+{
+  "generators": [
+    {
+      "topic": "customers",
+      "key": {
+        "name": {
+          "_gen": "string",
+          "expr": "#{Name.fullName}"
+        }
+      }
+    },
+    {
+      "topic": "orders",
+      "value": {
+        "orderId": {
+          "_gen": "uuid"
+        },
+        "customerId": {
+          "_gen": "lookup",
+          "topic": "customers",
+          "path": [
+            "key",
+            "name"
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "dev-kafka": {
+      "kind": "kafka",
+      "producerConfigs": {
+        "bootstrap.servers": "localhost:9092",
+        "key.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer",
+        "value.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer"
+      }
+    }
+  }
+}
