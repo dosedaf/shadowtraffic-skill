@@ -1,0 +1,32 @@
+{
+  "generators": [
+    {
+      "table": "orders",
+      "row": {
+        "orderId": {
+          "_gen": "uuid"
+        },
+        "orderDate": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "now"
+          },
+          "format": "yyyy-MM-dd"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 15
+      }
+    }
+  ],
+  "connections": {
+    "pg": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "localhost",
+        "port": 5432,
+        "db": "mydb"
+      }
+    }
+  }
+}
