@@ -1,0 +1,27 @@
+{
+  "generators": [
+    {
+      "table": "testTable",
+      "row": {
+        "testColumn": {
+          "_gen": "oneOf",
+          "choices": [
+            "\ud83d\udc4d",
+            "\ud83d\udd25",
+            "\u2764\ufe0f"
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "pg": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "localhost",
+        "port": 5432,
+        "db": "mydb"
+      }
+    }
+  }
+}

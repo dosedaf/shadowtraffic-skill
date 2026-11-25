@@ -1,0 +1,24 @@
+{
+  "generators": [
+    {
+      "bucket": "testBucket",
+      "data": {
+        "_gen": "oneOf",
+        "choices": [
+          "\ud83d\udc4d",
+          "\ud83d\udd25",
+          "\u2764\ufe0f"
+        ]
+      },
+      "bucketConfigs": {
+        "format": "jsonl",
+        "keyPrefix": "part-"
+      }
+    }
+  ],
+  "connections": {
+    "s3": {
+      "kind": "s3"
+    }
+  }
+}

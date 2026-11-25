@@ -1,0 +1,25 @@
+{
+  "generators": [
+    {
+      "topic": "testTopic",
+      "value": {
+        "_gen": "oneOf",
+        "choices": [
+          "\ud83d\udc4d",
+          "\ud83d\udd25",
+          "\u2764\ufe0f"
+        ]
+      }
+    }
+  ],
+  "connections": {
+    "dev-kafka": {
+      "kind": "kafka",
+      "producerConfigs": {
+        "bootstrap.servers": "localhost:9092",
+        "key.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer",
+        "value.serializer": "io.shadowtraffic.kafka.serdes.JsonSerializer"
+      }
+    }
+  }
+}
