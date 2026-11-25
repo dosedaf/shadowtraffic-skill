@@ -1,0 +1,84 @@
+{
+  "generators": [
+    {
+      "url": "http://localhost:9090/agent/events",
+      "name": "agentEvents",
+      "method": "POST",
+      "headers": {
+        "X-Agent-Run": {
+          "_gen": "env",
+          "var": "AGENT_RUN_ID",
+          "default": "local-smoke"
+        }
+      },
+      "queryParams": {
+        "source": "shadowtraffic"
+      },
+      "data": {
+        "eventId": { "_gen": "uuid" },
+        "eventType": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 5, "value": "agent.run.started" },
+            { "weight": 4, "value": "agent.tool.called" },
+            { "weight": 3, "value": "agent.run.completed" },
+            { "weight": 1, "value": "agent.run.failed" }
+          ]
+        },
+        "sessionId": {
+          "_gen": "sequentialString",
+          "expr": "sess-~d",
+          "cardinality": 25
+        },
+        "userId": {
+          "_gen": "sequentialString",
+          "expr": "user-~d",
+          "cardinality": 10
+        },
+        "latencyMs": {
+          "_gen": "normalDistribution",
+          "mean": 700,
+          "sd": 250,
+          "clamp": [30, 5000],
+          "decimals": 0
+        },
+        "success": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 93, "value": true },
+            { "weight": 7, "value": false }
+          ]
+        },
+        "payload": {
+          "_gen": "someKeys",
+          "object": {
+            "tool": {
+              "_gen": "oneOf",
+              "choices": ["web_search", "vector_search", "sql_query"]
+            },
+            "model": {
+              "_gen": "oneOf",
+              "choices": ["gpt-4.1-mini", "claude-sonnet-5"]
+            },
+            "promptTokens": {
+              "_gen": "uniformDistribution",
+              "bounds": [20, 2000],
+              "decimals": 0
+            }
+          }
+        },
+        "occurredAt": {
+          "_gen": "formatDateTime",
+          "ms": { "_gen": "now" }
+        }
+      },
+      "localConfigs": { "throughput": 5 }
+    }
+  ],
+  "connections": {
+    "webhook": {
+      "kind": "webhook",
+      "connectionConfigs": { "maxRequests": 1000 }
+    }
+  }
+}
