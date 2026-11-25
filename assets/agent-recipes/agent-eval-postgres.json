@@ -1,0 +1,408 @@
+{
+  "generators": [
+    {
+      "name": "users",
+      "table": "st_users",
+      "row": {
+        "id": {
+          "_gen": "uuid",
+          "pgHint": "UUID PRIMARY KEY"
+        },
+        "full_name": {
+          "_gen": "string",
+          "expr": "#{Name.fullName}",
+          "pgHint": "TEXT"
+        },
+        "email": {
+          "_gen": "profile",
+          "traits": [
+            "email"
+          ],
+          "path": [
+            "email"
+          ],
+          "pgHint": "TEXT"
+        },
+        "plan": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {
+              "weight": 7,
+              "value": "free"
+            },
+            {
+              "weight": 3,
+              "value": "pro"
+            }
+          ],
+          "pgHint": "TEXT"
+        },
+        "created_at": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "now"
+          },
+          "pgHint": "TEXT"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 50,
+        "throughput": 5
+      }
+    },
+    {
+      "name": "documents",
+      "table": "st_documents",
+      "row": {
+        "id": {
+          "_gen": "uuid",
+          "pgHint": "UUID PRIMARY KEY"
+        },
+        "title": {
+          "_gen": "string",
+          "expr": "#{Lorem.sentence}",
+          "pgHint": "TEXT"
+        },
+        "body": {
+          "_gen": "string",
+          "expr": "#{Lorem.paragraph}",
+          "pgHint": "TEXT"
+        },
+        "tags": {
+          "_gen": "repeatedly",
+          "n": {
+            "_gen": "uniformDistribution",
+            "bounds": [
+              1,
+              4
+            ],
+            "decimals": 0
+          },
+          "target": {
+            "_gen": "oneOf",
+            "choices": [
+              "billing",
+              "security",
+              "howto",
+              "api",
+              "release"
+            ]
+          },
+          "pgHint": "JSONB"
+        },
+        "indexed_at": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "now"
+          },
+          "pgHint": "TEXT"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 200,
+        "throughput": 8
+      }
+    },
+    {
+      "name": "conversations",
+      "table": "st_conversations",
+      "row": {
+        "id": {
+          "_gen": "uuid",
+          "pgHint": "UUID PRIMARY KEY"
+        },
+        "user_id": {
+          "_gen": "lookup",
+          "name": "users",
+          "path": [
+            "row",
+            "id"
+          ],
+          "pgHint": "UUID"
+        },
+        "channel": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {
+              "weight": 6,
+              "value": "web"
+            },
+            {
+              "weight": 3,
+              "value": "slack"
+            },
+            {
+              "weight": 1,
+              "value": "api"
+            }
+          ],
+          "pgHint": "TEXT"
+        },
+        "started_at": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "now"
+          },
+          "pgHint": "TEXT"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 100,
+        "throughput": 8
+      }
+    },
+    {
+      "name": "messages",
+      "table": "st_messages",
+      "row": {
+        "id": {
+          "_gen": "uuid",
+          "pgHint": "UUID PRIMARY KEY"
+        },
+        "conversation_id": {
+          "_gen": "lookup",
+          "name": "conversations",
+          "path": [
+            "row",
+            "id"
+          ],
+          "pgHint": "UUID"
+        },
+        "document_id": {
+          "_gen": "lookup",
+          "name": "documents",
+          "path": [
+            "row",
+            "id"
+          ],
+          "pgHint": "UUID"
+        },
+        "role": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {
+              "weight": 45,
+              "value": "user"
+            },
+            {
+              "weight": 55,
+              "value": "assistant"
+            }
+          ],
+          "pgHint": "TEXT"
+        },
+        "content": {
+          "_gen": "string",
+          "expr": "#{Lorem.paragraph}",
+          "pgHint": "TEXT"
+        },
+        "prompt_tokens": {
+          "_gen": "uniformDistribution",
+          "bounds": [
+            20,
+            2000
+          ],
+          "decimals": 0,
+          "pgHint": "INTEGER"
+        },
+        "completion_tokens": {
+          "_gen": "uniformDistribution",
+          "bounds": [
+            10,
+            800
+          ],
+          "decimals": 0,
+          "pgHint": "INTEGER"
+        },
+        "created_at": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "now"
+          },
+          "pgHint": "TEXT"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 500,
+        "throughput": 8
+      }
+    },
+    {
+      "name": "tool_calls",
+      "table": "st_tool_calls",
+      "row": {
+        "id": {
+          "_gen": "uuid",
+          "pgHint": "UUID PRIMARY KEY"
+        },
+        "message_id": {
+          "_gen": "lookup",
+          "name": "messages",
+          "path": [
+            "row",
+            "id"
+          ],
+          "pgHint": "UUID"
+        },
+        "tool_name": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {
+              "weight": 4,
+              "value": "web_search"
+            },
+            {
+              "weight": 3,
+              "value": "vector_search"
+            },
+            {
+              "weight": 2,
+              "value": "sql_query"
+            }
+          ],
+          "pgHint": "TEXT"
+        },
+        "status": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {
+              "weight": 92,
+              "value": "ok"
+            },
+            {
+              "weight": 8,
+              "value": "error"
+            }
+          ],
+          "pgHint": "TEXT"
+        },
+        "duration_ms": {
+          "_gen": "normalDistribution",
+          "mean": 400,
+          "sd": 150,
+          "clamp": [
+            5,
+            3000
+          ],
+          "decimals": 0,
+          "pgHint": "INTEGER"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 200,
+        "throughput": 8
+      }
+    },
+    {
+      "name": "evaluations",
+      "table": "st_evaluations",
+      "row": {
+        "id": {
+          "_gen": "uuid",
+          "pgHint": "UUID PRIMARY KEY"
+        },
+        "message_id": {
+          "_gen": "lookup",
+          "name": "messages",
+          "path": [
+            "row",
+            "id"
+          ],
+          "pgHint": "UUID"
+        },
+        "metric": {
+          "_gen": "oneOf",
+          "choices": [
+            "faithfulness",
+            "answer_relevance",
+            "toxicity",
+            "latency"
+          ],
+          "pgHint": "TEXT"
+        },
+        "score": {
+          "_gen": "normalDistribution",
+          "mean": 0.82,
+          "sd": 0.1,
+          "clamp": [
+            0,
+            1
+          ],
+          "decimals": 3,
+          "pgHint": "DOUBLE PRECISION"
+        },
+        "passed": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {
+              "weight": 85,
+              "value": true
+            },
+            {
+              "weight": 15,
+              "value": false
+            }
+          ],
+          "pgHint": "BOOLEAN"
+        },
+        "evaluated_at": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "now"
+          },
+          "pgHint": "TEXT"
+        }
+      },
+      "localConfigs": {
+        "throughput": 4
+      }
+    }
+  ],
+  "schedule": {
+    "stages": [
+      {
+        "generators": [
+          "users"
+        ]
+      },
+      {
+        "generators": [
+          "documents"
+        ]
+      },
+      {
+        "generators": [
+          "conversations"
+        ]
+      },
+      {
+        "generators": [
+          "messages"
+        ]
+      },
+      {
+        "generators": [
+          "tool_calls"
+        ]
+      },
+      {
+        "generators": [
+          "evaluations"
+        ]
+      }
+    ]
+  },
+  "connections": {
+    "postgres": {
+      "kind": "postgres",
+      "tablePolicy": "dropAndCreate",
+      "connectionConfigs": {
+        "host": "localhost",
+        "port": 5432,
+        "db": "agent_eval",
+        "username": "postgres",
+        "password": "postgres"
+      }
+    }
+  }
+}
