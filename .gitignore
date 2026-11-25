@@ -1,0 +1,21 @@
+# Secrets and local license material — never publish
+license.env
+*.env
+.env
+.env.*
+!*.env.example
+
+# Fetched upstream documentation (run scripts/fetch_docs.py)
+references/docs/
+
+# Local configs / outputs
+st.json
+*.local.json
+*.log
+logs/
+output/
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
